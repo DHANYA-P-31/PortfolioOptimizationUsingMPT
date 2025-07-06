@@ -4,3 +4,4 @@ pandas
 numpy
 plotly
 pyportfolioopt
+scikit-learn==1.5.2
