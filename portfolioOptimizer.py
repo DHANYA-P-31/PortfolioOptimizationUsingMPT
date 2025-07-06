@@ -97,26 +97,66 @@ with col2:
         st.write(f"{ticker}: {weight:.2%}")
 # Step 7: Visualization - Efficient Frontier
 st.header("Efficient Frontier")
-ef = EfficientFrontier(mean_returns, cov_matrix, weight_bounds=(0, max_weight))
-n_points = 100
-# Calculate maximum achievable return
-max_return = ef._max_return()
-# Use max_return to cap the frontier_returns range
-frontier_returns = np.linspace(min_vol_perf[0], min(max_sharpe_perf[0], max_return * 0.99), n_points)
-frontier_vols = []
-for ret in frontier_returns:
+with st.spinner("Generating efficient frontier..."):
     try:
         ef = EfficientFrontier(mean_returns, cov_matrix, weight_bounds=(0, max_weight))
-        ef.efficient_return(ret)
-        frontier_vols.append(ef.portfolio_performance(verbose=False)[1])
-    except Exception:
-        # Skip infeasible returns
-        frontier_vols.append(np.nan)
-
-# Filter out NaN values for plotting
-valid_indices = ~np.isnan(frontier_vols)
-frontier_returns = frontier_returns[valid_indices]
-frontier_vols = np.array(frontier_vols)[valid_indices]
+        n_points = 50  # Reduced for performance
+        max_return = ef._max_return()
+        frontier_returns = np.linspace(min_vol_perf[0], min(max_sharpe_perf[0], max_return * 0.99), n_points)
+        frontier_vols = []
+        for ret in frontier_returns:
+            try:
+                ef = EfficientFrontier(mean_returns, cov_matrix, weight_bounds=(0, max_weight))
+                ef.efficient_return(ret)
+                frontier_vols.append(ef.portfolio_performance(verbose=False)[1])
+            except Exception:
+                frontier_vols.append(np.nan)
+        
+        # Filter out NaN values
+        valid_indices = ~np.isnan(frontier_vols)
+        if not np.any(valid_indices):
+            st.warning("No valid portfolio solutions for efficient frontier. Displaying max Sharpe and min volatility points.")
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=[max_sharpe_perf[1], min_vol_perf[1]],
+                y=[max_sharpe_perf[0], min_vol_perf[0]],
+                mode='markers',
+                name='Portfolios',
+                marker=dict(size=15, symbol='star', color=['red', 'green']),
+                text=['Max Sharpe', 'Min Volatility']
+            ))
+        else:
+            frontier_returns = frontier_returns[valid_indices]
+            frontier_vols = np.array(frontier_vols)[valid_indices]
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=frontier_vols, y=frontier_returns,
+                mode='lines', name='Efficient Frontier',
+                line=dict(color='blue'),
+                hovertemplate='Volatility: %{x:.2%}<br>Return: %{y:.2%}<extra></extra>'
+            ))
+            fig.add_trace(go.Scatter(
+                x=[max_sharpe_perf[1]], y=[max_sharpe_perf[0]],
+                mode='markers', name='Max Sharpe',
+                marker=dict(symbol='star', size=15, color='red')
+            ))
+            fig.add_trace(go.Scatter(
+                x=[min_vol_perf[1]], y=[min_vol_perf[0]],
+                mode='markers', name='Min Volatility',
+                marker=dict(symbol='star', size=15, color='green')
+            ))
+        fig.update_layout(
+            title="Portfolio Optimization - Efficient Frontier",
+            xaxis_title="Volatility (Standard Deviation)",
+            yaxis_title="Expected Return",
+            showlegend=True,
+            template="plotly_white"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    except Exception as e:
+        st.error(f"Failed to generate efficient frontier: {str(e)}. Try adjusting parameters or tickers.")
+        st.stop()
+        
 # Step 8: Download Report
 st.header("Download Report")
 report = pd.DataFrame({
