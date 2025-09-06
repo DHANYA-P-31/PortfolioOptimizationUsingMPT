@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 # Streamlit app configuration
 st.set_page_config(page_title="Portfolio Optimizer", layout="wide")
 st.title("Modern Portfolio Theory - Portfolio Optimizer")
-# Step 1: User Inputs
+# User Inputs
 st.sidebar.header("Portfolio Parameters")
 tickers_input = st.sidebar.text_input("Enter tickers (comma-separated, e.g., AAPL,MSFT,GOOGL)", 
                                      value="AAPL,MSFT,GOOGL,AMZN,TSLA")
@@ -30,7 +30,7 @@ if len(tickers) < 2:
 if start_date >= end_date:
     st.error("End date must be after start date.")
     st.stop()
-# Step 2: Data Collection
+# Data Collection
 with st.spinner("Fetching data..."):
     data = yf.download(tickers, start=start_date, end=end_date, auto_adjust=True)['Close']
     
@@ -44,11 +44,11 @@ with st.spinner("Fetching data..."):
     if len(data) < 100:
         st.error("Insufficient data points. Please select a longer date range.")
         st.stop()
-# Step 3: Calculate Returns and Covariance
+# Calculate Returns and Covariance
 returns = data.pct_change().dropna()
 mean_returns = expected_returns.mean_historical_return(data, frequency=252)
 cov_matrix = risk_models.sample_cov(data, frequency=252)
-# Step 4: Portfolio Optimization
+#Portfolio Optimization
 try:
     ef = EfficientFrontier(mean_returns, cov_matrix, weight_bounds=(0, max_weight))
     
@@ -65,12 +65,12 @@ try:
 except Exception as e:
     st.error(f"Optimization failed: {str(e)}. Try different tickers or date range.")
     st.stop()
-# Step 5: Discrete Allocation
+#Discrete Allocation
 latest_prices = data.iloc[-1]
 da = DiscreteAllocation(max_sharpe_weights, latest_prices, total_portfolio_value=investment_amount)
 allocation, leftover = da.greedy_portfolio()
 
-# Step 6: Display Results
+# Display Results
 st.header("Optimal Portfolios")
 col1, col2 = st.columns(2)
 
@@ -95,7 +95,7 @@ with col2:
     st.write("**Weights**:")
     for ticker, weight in min_vol_weights.items():
         st.write(f"{ticker}: {weight:.2%}")
-# Step 7: Visualization - Efficient Frontier
+#  Visualization - Efficient Frontier
 st.header("Efficient Frontier")
 with st.spinner("Generating efficient frontier..."):
     try:
@@ -157,7 +157,7 @@ with st.spinner("Generating efficient frontier..."):
         st.error(f"Failed to generate efficient frontier: {str(e)}. Try adjusting parameters or tickers.")
         st.stop()
         
-# Step 8: Download Report
+# Download Report
 st.header("Download Report")
 report = pd.DataFrame({
     "Ticker": list(max_sharpe_weights.keys()),
