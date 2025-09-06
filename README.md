@@ -47,3 +47,28 @@ It leverages **historical stock data**, applies **portfolio optimization techniq
 
 ---
 
+# Portfolio Optimization App
+
+A Streamlit-based web application for portfolio optimization using historical stock data, featuring the Efficient Frontier, Max Sharpe Ratio, and Minimum Volatility portfolios.
+
+## Usage
+
+Run the Streamlit app:
+  ```bash
+  streamlit run app.py
+  ```
+Then open the app in your browser at: *http://localhost:8501*
+
+---
+
+## How It Works
+
+- **Input Parameters** – Enter stock tickers, investment amount, and risk-free rate in the sidebar.
+- **Data Fetching** – Historical stock prices are downloaded from Yahoo Finance.
+- **Portfolio Optimization** –
+    - Max Sharpe Portfolio: Optimizes for the highest risk-adjusted return.
+    - Min Volatility Portfolio: Optimizes for the least risky portfolio.
+- **Visualization** – The Efficient Frontier is plotted with portfolio performance metrics.
+- **Download Report** – Get portfolio allocations, returns, and risk in CSV format.
+
+---
